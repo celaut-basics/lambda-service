@@ -27,6 +27,8 @@ client ──HTTP──▶ parent (Rust) ──StartService──▶ node ──
 | child built for one function (`nodo export`, word_count) | 436,681 B |
 | `lambda-parent` (static-pie musl, stripped, `opt-level = "s"`, LTO) | 1,397,696 B |
 | parent, packed (`nodo export`, with the child in it) | 1,865,690 B |
+| arm64: `micropython` / `lambda-parent` | 460,768 B / 1,249,728 B |
+| arm64: child packed / parent packed (`nodo export`) | 465,549 B / 1,746,274 B |
 
 | Memory | |
 |---|---|
