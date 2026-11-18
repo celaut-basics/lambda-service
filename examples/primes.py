@@ -1,8 +1,15 @@
+# CPU and memory in the child: a sieve of Eratosthenes up to n.
+# (MicroPython note: `bytearray(...) * n` and slice assignment with a step are not
+# supported, so this uses a list and plain loops.)
 def handler(event):
     n = event.get("n", 10000)
-    sieve = bytearray([1]) * (n + 1)
-    sieve[0:2] = b"\x00\x00"
-    for i in range(2, int(n ** 0.5) + 1):
+    sieve = [True] * (n + 1)
+    sieve[0] = sieve[1] = False
+    i = 2
+    while i * i <= n:
         if sieve[i]:
-            sieve[i * i::i] = bytearray(len(range(i * i, n + 1, i)))
-    return {"n": n, "primes": sum(sieve), "last": max(i for i in range(n + 1) if sieve[i])}
+            for j in range(i * i, n + 1, i):
+                sieve[j] = False
+        i += 1
+    primes = [k for k in range(n + 1) if sieve[k]]
+    return {"n": n, "count": len(primes), "last": primes[-1]}

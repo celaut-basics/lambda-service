@@ -16,7 +16,33 @@ client ──HTTP──▶ parent (Rust) ──StartService──▶ node ──
                    └─ waits for /lambda/<job>/output.json (written by the child)
 ```
 
-__SIZES__
+## Measured (amd64, nodo dev `84e0acf7`, Cloud Hypervisor, 2026-11-18)
+
+| What | Size |
+|---|---|
+| `micropython` (unix port, static musl, stripped) | 432,216 B |
+| `lambda.py` (entry script) | 3,469 B |
+| child image (the two files + `/lambda`) | 435,685 B |
+| child, packed (`nodo export`, generic) | 436,997 B |
+| child built for one function (`nodo export`, word_count) | 436,681 B |
+| `lambda-parent` (static-pie musl, stripped, `opt-level = "s"`, LTO) | 1,397,696 B |
+| parent, packed (`nodo export`, with the child in it) | 1,865,690 B |
+
+| Memory | |
+|---|---|
+| MicroPython process, peak RSS (`VmHWM`) | 520–536 kB (word_count, meminfo); 2.3 MB for a sieve to 200,000 |
+| MicroPython heap used by the run | 9–28 kB (those functions); heap size 8 MiB |
+| child VM: what the node gives it | 128 MiB (the node floor `virtualizers.ch.MIN_MEM_MIB`; the child asks 64 MB), `--memory size=172M` with the node's overhead; the guest sees `MemTotal` 141 MiB, `MemAvailable` 119 MiB |
+| child VM: RSS of its cloud-hypervisor process on the host | 74 MiB |
+| child rootfs image that the node builds | 128 MiB `rootfs.ext4` (the node's floor) |
+
+| Time | |
+|---|---|
+| parent: `nodo execute` until its endpoint is printed | 5.2 s; `/health` answers 37 ms later |
+| child: `StartService` (the VM boots, the init mounts the share) | 3.6–4.9 s (9 runs) |
+| child: result in the share after `StartService` returns | ~50 ms |
+| first run of a new function: send + quote (+ build at the start) | +2.2 s |
+| `POST /invoke`, end to end | 4.1–7.5 s |
 
 ## The child's id is the hash of the function
 
@@ -76,12 +102,25 @@ curl -s http://<parent>:8080/invoke -H 'content-type: application/json' \
 
 More in `examples/`.
 
+## Costs on the node
+
+- A child built for a function is a new service: the node builds it once (on its default
+  configuration that costs `BUILD_MU` = 10,000,000 MU, taken from the start budget of the
+  first run) and keeps a 128 MiB rootfs for it. The next runs of the same function start
+  by hash and pay no build.
+- The parent pays its children from its own balance. On a default node a parent started
+  with `nodo execute` holds about 8,000,000 MU: less than one build, so a client that
+  wants new functions must fund it (`nodo increase_deposit <instance> <MU>`).
+
 ## How a run goes
 
 1. The parent makes `/lambda/<job>/` and writes `input.json` (and `fn.py` in generic mode).
-2. It asks the node for a quote of the child and starts it with `initial_mu` = twice the
-   start cost plus twice the maintenance for the time limit (the rest comes back at the
-   stop), the variable `LAMBDA_JOB=<job>` and the instance name `lam-<job>`.
+2. It asks the node for a quote of the child. A child that the node does not have yet
+   goes in that call (`GetServiceEstimatedCost` with the service, through the relay of
+   service-library), so the quote includes its build and the start goes by hash. It
+   starts the child with `initial_mu` = twice the start cost plus twice the maintenance
+   for the time limit (the rest comes back at the stop), the variable `LAMBDA_JOB=<job>`
+   and the instance name `lam-<job>`.
 3. The node boots the child VM. Its init mounts the share at `/lambda` and runs
    `/lambda.py` (`#!/micropython`: the node runs one path with no arguments).
 4. The child runs `handler(input)` and writes `output.json` by a rename, so the parent
@@ -123,6 +162,9 @@ follow symlinks: build from `cp -RL amd64 /tmp/x`.
 - The heap is 8 MiB (the unix port's default is 2 MiB on 64-bit, and the node gives the
   entry point no arguments, so `-X heapsize` cannot be used). Pages that the heap does
   not use are not touched.
+- Things that differ and that a function hits easily: `bytearray(...) * n` is a
+  `TypeError`, and slice assignment with a step (`a[i::k] = ...`) is not supported
+  (`examples/primes.py` uses a list and loops).
 - Input and output are JSON, up to 1 MiB of request body.
 - One function per child; the child runs once and is stopped.
 
