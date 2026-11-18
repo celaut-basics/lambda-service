@@ -1,0 +1,70 @@
+{
+    "tag": "lambda-service",
+    "api": [
+        {
+            "port": 8080,
+            "protocol": [
+                "http"
+            ]
+        }
+    ],
+    "architecture": "linux/arm64",
+    "init": {
+        "entry_path": [
+            "lambda-parent"
+        ]
+    },
+    "uses_gateway": true,
+    "resources": {
+        "at_init": {
+            "mem_limit": 64000000,
+            "disk_space": 64000000
+        },
+        "at_most": {
+            "mem_limit": 64000000,
+            "disk_space": 64000000
+        }
+    },
+    "shared_filesystems": [
+        {
+            "path": "/lambda",
+            "role": "shared",
+            "tag": "lambda"
+        }
+    ],
+    "possible_environment_workload": [
+        {
+            "any_of": [
+                {
+                    "workloads": [
+                        {
+                            "count": 4,
+                            "dependency": {
+                                "service": {
+                                    "prose": "A MicroPython child: the packed child (generic) or the packed child plus /fn.py (one service id per function).",
+                                    "container": {
+                                        "architecture": {
+                                            "tags": [
+                                                "linux/arm64"
+                                            ]
+                                        },
+                                        "resources": {
+                                            "at_init": {
+                                                "mem_limit": 64000000,
+                                                "disk_space": 16000000
+                                            },
+                                            "at_most": {
+                                                "mem_limit": 64000000,
+                                                "disk_space": 16000000
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

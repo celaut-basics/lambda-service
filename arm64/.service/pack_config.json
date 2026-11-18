@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "LAMBDA_CHILD": "child"
+  },
+  "dependencies_env": true,
+  "include": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "src"
+  ]
+}

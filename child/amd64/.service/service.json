@@ -1,0 +1,31 @@
+{
+    "tag": "lambda-child",
+    "architecture": "linux/amd64",
+    "init": {
+        "entry_path": [
+            "lambda.py"
+        ]
+    },
+    "envs": [
+        "LAMBDA_JOB"
+    ],
+    "notice_declaration": false,
+    "resources": {
+        "at_init": {
+            "mem_limit": 64000000,
+            "disk_space": 16000000
+        },
+        "at_most": {
+            "mem_limit": 64000000,
+            "disk_space": 16000000
+        }
+    },
+    "shared_filesystems": [
+        {
+            "path": "/lambda",
+            "role": "guest",
+            "tag": "lambda",
+            "access": "rw"
+        }
+    ]
+}
