@@ -254,7 +254,7 @@ async fn invoke(state: &State, request: &Value) -> Value {
         std::fs::write(dir.join("input.json"), input.to_string()).map_err(|e| e.to_string())?;
         if generic {
             std::fs::write(dir.join("fn.py"), &code).map_err(|e| e.to_string())?;
-            Ok((None, state.base.id))
+            Ok((Some(state.base.service.clone()), state.base.id))
         } else {
             let (service, id) = child_for(&state.base, &code)?;
             Ok((Some(service), id))
@@ -269,8 +269,9 @@ async fn invoke(state: &State, request: &Value) -> Value {
     };
 
     // A child that the node does not have yet is sent with its quote; then every start
-    // goes by hash.
-    let known = state.known.lock().unwrap().contains(&id) || id == state.base.id;
+    // goes by hash. The packed (generic) child too: a node that imported only the parent
+    // does not have it in its registry, so the first generic call sends it.
+    let known = state.known.lock().unwrap().contains(&id);
     let t_start = Instant::now();
     let quote = if known {
         state

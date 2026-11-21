@@ -71,7 +71,7 @@ about the code. The tradeoff:
 | | built-in (default) | generic |
 |---|---|---|
 | child id | hash of the function | the same for all functions |
-| first run of a function | sends the child (~0.43 MB) to the node, and the node builds its rootfs | starts by hash |
+| first run of a function | sends the child (~0.43 MB) to the node, and the node builds its rootfs | starts by hash (the first generic run after the parent starts sends the packed child once, for a node that imported only the parent) |
 | registry | one entry per function | one entry |
 | what a receipt proves | which code ran | only that the interpreter ran |
 
