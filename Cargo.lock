@@ -126,8 +126,8 @@ dependencies = [
 
 [[package]]
 name = "celaut-proto"
-version = "0.6.3"
-source = "git+https://github.com/celaut-project/service-library?tag=v0.6.3#fba59564c7db7f089f9e697bdf18ee0acbe5d773"
+version = "0.9.0"
+source = "git+https://github.com/celaut-project/service-library?tag=v0.9.0#7928850847836bd7e77c49744af1050d5e24f67d"
 dependencies = [
  "prost",
 ]
@@ -625,8 +625,8 @@ dependencies = [
 
 [[package]]
 name = "service-library"
-version = "0.6.3"
-source = "git+https://github.com/celaut-project/service-library?tag=v0.6.3#fba59564c7db7f089f9e697bdf18ee0acbe5d773"
+version = "0.9.0"
+source = "git+https://github.com/celaut-project/service-library?tag=v0.9.0#7928850847836bd7e77c49744af1050d5e24f67d"
 dependencies = [
  "bee-rpc",
  "blake2",

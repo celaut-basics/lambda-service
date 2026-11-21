@@ -148,6 +148,8 @@ fn child_for(base: &Base, code: &str) -> Result<(Vec<u8>, [u8; 32]), String> {
         name: "fn.py".into(),
         item: Some(Item::File(code.as_bytes().to_vec())),
         xattrs: base.xattrs.clone(),
+        // celaut.proto 4b7533fd (nodo 66721709): no policies, so the bytes are as before.
+        policies: Vec::new(),
     };
     let mut new_filesystem = filesystem.to_vec();
     new_filesystem.extend(wire::field(1, &branch.encode_to_vec()));
